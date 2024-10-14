@@ -1,0 +1,28 @@
+-- Cách lấy dữ liệu về đơn hàng, hóa đơn, và phí vận chuyển
+-- Bạn có thể sử dụng câu truy vấn sau để lấy thông tin về đơn hàng, hóa đơn, thanh toán, và thông tin giao hàng cùng với phí giao hàng:
+
+
+SELECT 
+    O.OrderID, 
+    C.FullName AS CustomerName, 
+    O.TotalAmount AS OrderTotal, 
+    P.PaymentMethod, 
+    P.PaymentStatus, 
+    I.InvoiceDate, 
+    I.NetAmount, 
+    SP.ShippingCost, 
+    SP.ShippingStatus, 
+    S.ShipperName
+FROM 
+    Orders O
+INNER JOIN 
+    Customers C ON O.CustomerID = C.CustomerID
+INNER JOIN 
+    Payments P ON O.OrderID = P.OrderID
+INNER JOIN 
+    Invoices I ON O.OrderID = I.OrderID
+INNER JOIN 
+    Shipping SP ON O.OrderID = SP.OrderID
+INNER JOIN 
+    Shippers S ON SP.ShipperID = S.ShipperID;
+-- Câu truy vấn này sẽ trả về thông tin đơn hàng, khách hàng, phương thức thanh toán, tổng tiền hóa đơn, phí vận chuyển, và trạng thái giao hàng.
