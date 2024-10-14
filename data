@@ -1,0 +1,85 @@
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY IDENTITY(1,1),
+    FullName NVARCHAR(100) NOT NULL,
+    Email NVARCHAR(100) UNIQUE NOT NULL,
+    PhoneNumber NVARCHAR(20),
+    Address NVARCHAR(255),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+CREATE TABLE Products (
+    ProductID INT PRIMARY KEY IDENTITY(1,1),
+    ProductName NVARCHAR(100) NOT NULL,
+    Description NVARCHAR(500),
+    Price DECIMAL(18, 2) NOT NULL,
+    StockQuantity INT NOT NULL DEFAULT 0, -- Số lượng sản phẩm trong kho
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY IDENTITY(1,1),
+    CustomerID INT NOT NULL,
+    OrderDate DATETIME DEFAULT GETDATE(),
+    TotalAmount DECIMAL(18, 2) NOT NULL, -- Tổng tiền sản phẩm
+    ShippingStatus NVARCHAR(50) DEFAULT 'Pending', -- Trạng thái giao hàng
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
+);
+
+CREATE TABLE OrderDetails (
+    OrderDetailID INT PRIMARY KEY IDENTITY(1,1),
+    OrderID INT NOT NULL,
+    ProductID INT NOT NULL,
+    Quantity INT NOT NULL,
+    UnitPrice DECIMAL(18, 2) NOT NULL, -- Giá tại thời điểm đặt hàng
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+);
+
+CREATE TABLE Payments (
+    PaymentID INT PRIMARY KEY IDENTITY(1,1),
+    OrderID INT NOT NULL,
+    PaymentDate DATETIME DEFAULT GETDATE(),
+    PaymentMethod NVARCHAR(50), -- Phương thức thanh toán (VD: Thẻ, Tiền mặt)
+    PaymentStatus NVARCHAR(50) DEFAULT 'Pending', -- Trạng thái thanh toán (Pending, Completed, Failed)
+    Amount DECIMAL(18, 2) NOT NULL, -- Số tiền thanh toán
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID)
+);
+
+CREATE TABLE Invoices (
+    InvoiceID INT PRIMARY KEY IDENTITY(1,1),
+    OrderID INT NOT NULL,
+    PaymentID INT NOT NULL,
+    InvoiceDate DATETIME DEFAULT GETDATE(),
+    TotalAmount DECIMAL(18, 2) NOT NULL, -- Tổng tiền sản phẩm
+    TaxAmount DECIMAL(18, 2), -- Tiền thuế (nếu có)
+    DiscountAmount DECIMAL(18, 2), -- Giảm giá (nếu có)
+    ShippingCost DECIMAL(18, 2), -- Phí vận chuyển
+    NetAmount AS (TotalAmount + TaxAmount - DiscountAmount + ShippingCost) PERSISTED, -- Tổng tiền thanh toán
+    Notes NVARCHAR(500), -- Ghi chú hóa đơn
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
+    FOREIGN KEY (PaymentID) REFERENCES Payments(PaymentID)
+);
+
+CREATE TABLE Shippers (
+    ShipperID INT PRIMARY KEY IDENTITY(1,1),
+    ShipperName NVARCHAR(100) NOT NULL,
+    PhoneNumber NVARCHAR(20),
+    Email NVARCHAR(100) UNIQUE,
+    VehicleInfo NVARCHAR(255), -- Thông tin phương tiện vận chuyển
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+CREATE TABLE Shipping (
+    ShippingID INT PRIMARY KEY IDENTITY(1,1),
+    OrderID INT NOT NULL,
+    ShipperID INT NOT NULL,
+    ShippingStatus NVARCHAR(50) DEFAULT 'Pending', -- Trạng thái giao hàng
+    ShippingDate DATETIME, -- Ngày bắt đầu giao hàng
+    DeliveryDate DATETIME, -- Ngày giao hàng thành công
+    ShippingCost DECIMAL(18, 2) NOT NULL DEFAULT 0.00, -- Phí giao hàng
+    Notes NVARCHAR(500), -- Ghi chú về quá trình giao hàng
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
+    FOREIGN KEY (ShipperID) REFERENCES Shippers(ShipperID)
+);
+
+
